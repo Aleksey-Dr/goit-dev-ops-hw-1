@@ -1,10 +1,4 @@
-variable "ecr_name" {
-  description = "Назва репозиторію ECR."
+variable "repository_name" {
+  description = "The name of the ECR repository."
   type        = string
-}
-
-variable "scan_on_push" {
-  description = "Увімкнути сканування при відправленні образів."
-  type        = bool
-  default     = true
 }

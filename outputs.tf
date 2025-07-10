@@ -1,29 +1,29 @@
-output "s3_bucket_url" {
-  description = "URL S3-бакету для стану Terraform."
-  value       = module.s3_backend.s3_bucket_url
-}
-
-output "dynamodb_table_name" {
-  description = "Ім'я таблиці DynamoDB для блокування стану Terraform."
-  value       = module.s3_backend.dynamodb_table_name
-}
-
 output "vpc_id" {
-  description = "Ідентифікатор VPC."
+  description = "The ID of the VPC"
   value       = module.vpc.vpc_id
 }
 
-output "public_subnet_ids" {
-  description = "Ідентифікатори публічних підмереж."
-  value       = module.vpc.public_subnet_ids
+output "public_subnets" {
+  description = "The IDs of the public subnets"
+  value       = module.vpc.public_subnets_id
 }
 
-output "private_subnet_ids" {
-  description = "Ідентифікатори приватних підмереж."
-  value       = module.vpc.private_subnet_ids
+output "private_subnets" {
+  description = "The IDs of the private subnets"
+  value       = module.vpc.private_subnets_id
 }
 
 output "ecr_repository_url" {
-  description = "URL репозиторію ECR."
-  value       = module.ecr.ecr_repository_url
+  description = "The URL of the ECR repository"
+  value       = module.ecr.repository_url
+}
+
+output "eks_cluster_name" {
+  description = "The name of the EKS cluster"
+  value       = module.eks.cluster_name
+}
+
+output "eks_kubeconfig_command" {
+  description = "Command to configure kubectl for the EKS cluster"
+  value       = "aws eks update-kubeconfig --region eu-central-1 --name ${module.eks.cluster_name}"
 }

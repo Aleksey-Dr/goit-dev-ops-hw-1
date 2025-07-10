@@ -2,7 +2,7 @@ resource "aws_s3_bucket" "terraform_state" {
   bucket = var.bucket_name
 
   tags = {
-    Name        = "${var.bucket_name}-tfstate"
+    Name        = "${var.bucket_name}-s3-backend"
     Environment = "Dev"
   }
 }
@@ -14,12 +14,7 @@ resource "aws_s3_bucket_versioning" "terraform_state_versioning" {
   }
 }
 
-resource "aws_s3_bucket_acl" "terraform_state_acl" {
-  bucket = aws_s3_bucket.terraform_state.id
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_sse" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_encryption" {
   bucket = aws_s3_bucket.terraform_state.id
 
   rule {
