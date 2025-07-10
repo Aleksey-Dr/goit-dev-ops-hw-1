@@ -1,0 +1,36 @@
+replicaCount: 2
+
+image:
+  repository: 152710746299.dkr.ecr.eu-central-1.amazonaws.com
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8000
+
+configMap:
+  enabled: true
+  data:
+    DJANGO_SETTINGS_MODULE: "myproject.settings.py"
+    DEBUG: "False"
+    SECRET_KEY: SECRET_KEY
+    ALLOWED_HOSTS: ALLOWED_HOSTS
+    DATABASE_URL: "postgres://user:password@host:port/database"
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+ingress:
+  enabled: false
+  className: ""
+  host: "" # domain.com
+  path: /
+  pathType: Prefix
+  tls: false
+  # annotations:
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod # Розкоментуйте, якщо використовуєте cert-manager

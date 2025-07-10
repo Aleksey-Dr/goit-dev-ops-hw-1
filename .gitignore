@@ -1,1 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+bin/
+include/
+lib/
+lib64/
+.env                 # Важно! Ваши переменные окружения не должны попасть в Git
+pip-log.log
+pip-delete-this-file.log
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.mo
+*.pot
+*.log
+.mypy_cache/
+.vscode/             # Опционально: Игнорировать специфичные для VS Code файлы
+.idea/               # Опционально: Игнорировать специфичные для PyCharm/IntelliJ файлы
+
+# Django
+*.sqlite3            # Ваша база данных SQLite
+media/               # Если вы загружаете медиафайлы (изображения, видео и т.д.)
+staticfiles/         # Скомпилированные статические файлы (из collectstatic)
+
+# IDE specific files (if you use other IDEs)
+.project
+.settings
+.metadata
+
 .terraform/

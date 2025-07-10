@@ -1,25 +1,24 @@
-variable "vpc_cidr_block" {
-  description = "CIDR-блок для VPC."
+variable "project_name" {
+  description = "The name of the project to tag resources."
   type        = string
 }
 
-variable "public_subnets" {
-  description = "Список CIDR-блоків для публічних підмереж."
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC."
+  type        = string
+}
+
+variable "public_subnets_cidr" {
+  description = "A list of CIDR blocks for public subnets."
   type        = list(string)
 }
 
-variable "private_subnets" {
-  description = "Список CIDR-блоків для приватних підмереж."
+variable "private_subnets_cidr" {
+  description = "A list of CIDR blocks for private subnets."
   type        = list(string)
 }
 
 variable "availability_zones" {
-  description = "Список зон доступності для розгортання ресурсів."
+  description = "A list of availability zones to use for subnets."
   type        = list(string)
-  default     = ["eu-central-1a, eu-central-1b, eu-central-1c"]
-}
-
-variable "vpc_name" {
-  description = "Тег імені для VPC."
-  type        = string
 }
