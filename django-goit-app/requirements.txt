@@ -1,8 +1,0 @@
-Django>=4.0,<5.0
-djangorestframework
-psycopg2-binary # Для работы с PostgreSQL, если вы используете его как базу данных
-gunicorn # Сервер для развертывания Django-приложения
-python-dotenv # Для работы с переменными окружения из .env файла
-Pillow # Если приложение работает с изображениями
-drf-yasg # Если используется Swagger/OpenAPI для документации API
-dj-database-url
