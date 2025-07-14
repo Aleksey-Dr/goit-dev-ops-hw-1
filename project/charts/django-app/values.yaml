@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: 152710746299.dkr.ecr.eu-central-1.amazonaws.com/django-app-repo
+  pullPolicy: IfNotPresent
+  # ТЕГ ЗМІНЮВАТИМЕТЬСЯ JENKINS
+  tag: "latest" # Цей тег буде оновлюватись Jenkins!
+
+service:
+  type: LoadBalancer # Або ClusterIP + Ingress
+  port: 80
+
+config:
+  djangoSecretKey: "lbd_pf#xj(_#n0(5yvqop9i-w)&3(^!q0o^!xgw)#^j5m%f7m+"
+  debug: "True"
+  allowedHosts: "*" # Змініть для продакшну
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80

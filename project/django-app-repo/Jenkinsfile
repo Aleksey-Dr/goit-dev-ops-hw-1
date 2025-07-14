@@ -1,0 +1,64 @@
+pipeline {
+    agent {
+        kubernetes {
+            cloud 'kubernetes'
+            label 'kaniko-builder' // Этот лейбл должен соответствовать podTemplate в Jenkins values.yaml
+            serviceAccount 'jenkins-agent' // ServiceAccount для Jenkins Kaniko агента
+        }
+    }
+    environment {
+        AWS_ACCOUNT_ID = '152710746299'
+        ECR_REPO_NAME  = 'django-app-repo'
+        // Разделяем URL-адреса для чтения (HTTPS) и записи (SSH)
+        HELM_CHARTS_REPO_URL_HTTPS = 'https://github.com/Aleksey-Dr/helm-charts-repo.git' // HTTPS URL репозитория с Helm-чартами для клонирования
+        HELM_CHARTS_REPO_URL_SSH = 'git@github.com:Aleksey-Dr/helm-charts-repo.git' // SSH URL репозитория с Helm-чартами для пуша
+        HELM_CHARTS_REPO_BRANCH = 'main' // Ветка, которую обновлять
+    }
+
+    stages {
+        stage('Checkout Helm Charts Repo') {
+            steps {
+                script {
+                    dir('charts-repo') {
+                        // Клонируем Helm-репозиторий по HTTPS, т.к. он публичный для чтения.
+                        sh "git clone ${env.HELM_CHARTS_REPO_URL_HTTPS} ."
+                        sh "git config user.email 'jenkins@example.com'"
+                        sh "git config user.name 'Jenkins CI/CD'"
+                    }
+                }
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    def imageTag = "v${env.BUILD_NUMBER}"
+                    // Для Kaniko, благодаря IRSA, явные credentialsId обычно не нужны,
+                    // так как IAM роль ServiceAccount предоставляет необходимые права.
+                    sh "mkdir -p /kaniko/.docker"
+                    sh "aws ecr get-login-password --region eu-central-1 | tee /kaniko/.docker/config.json"
+
+                    // Используем '.' как контекст, предполагая, что Dockerfile находится в корневом каталоге склонированного репозитория
+                    sh "kaniko --dockerfile Dockerfile --context . --destination ${env.AWS_ACCOUNT_ID}.dkr.ecr.eu-central-1.amazonaws.com/${env.ECR_REPO_NAME}:${imageTag}"
+                    env.IMAGE_TAG = imageTag
+                }
+            }
+        }
+
+        stage('Update Helm Chart and Push to Git') {
+            steps {
+                dir('charts-repo') { // Переходим в клонированный репозиторий Helm-чартов
+                    sh "sed -i 's|tag:.*|tag: \"${env.IMAGE_TAG}\"|g' charts/django-app/values.yaml"
+                    sh 'git add charts/django-app/values.yaml'
+                    sh "git commit -m 'Jenkins: Update django-app image to ${env.IMAGE_TAG}' || true"
+
+                    // Используем withCredentials с правильным credentialsId для SSH-аутентификации при пуше
+                    withCredentials([sshUserPrivateKey(credentialsId: 'your-github-ssh-key-id', keyFileVariable: 'GIT_SSH_KEY')]) {
+                        // Используем SSH URL для git push
+                        sh "GIT_SSH_COMMAND='ssh -i ${GIT_SSH_KEY} -o StrictHostKeyChecking=no' git push ${env.HELM_CHARTS_REPO_URL_SSH} ${env.HELM_CHARTS_REPO_BRANCH}"
+                    }
+                }
+            }
+        }
+    }
+}

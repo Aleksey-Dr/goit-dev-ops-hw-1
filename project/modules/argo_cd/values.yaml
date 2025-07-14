@@ -1,0 +1,9 @@
+server:
+  service:
+    type: LoadBalancer # Дозволяє доступ до Argo CD через AWS ELB
+  ingress:
+    enabled: false # Якщо використовуєтся LoadBalancer, Ingress не потрібен за замовчуванням
+
+configs:
+  cm:
+    url: "https://your-argocd-hostname.com" # Якщо ви налаштуєте DNS
