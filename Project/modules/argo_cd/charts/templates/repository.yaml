@@ -1,0 +1,60 @@
+# Progect/modules/argo_cd/charts/templates/repository.yaml
+# Kubernetes Manifest для Argo CD Repository.
+# Цей шаблон генерує ресурси Argo CD Repository на основі значень,
+# переданих Helm чарту.
+
+{{- range .Values.repositories }}
+apiVersion: v1alpha1
+kind: Repository
+metadata:
+  # Назва репозиторію Argo CD
+  name: {{ .name }}
+  # Простір імен, де буде розгорнуто сам ресурс Repository (зазвичай той самий, що й Argo CD)
+  namespace: {{ default "argocd" .namespace }} # За замовчуванням "argocd" або з .Values.repositories.namespace
+  labels:
+    app.kubernetes.io/name: {{ .name }}
+    app.kubernetes.io/part-of: argo-cd-repos
+spec:
+  # URL репозиторію Git
+  url: {{ .url }}
+  # Тип репозиторію (git, helm, s3, etc.)
+  type: {{ .type | default "git" }}
+  # Чи є репозиторій небезпечним (наприклад, самопідписані сертифікати)
+  insecure: {{ .insecure | default false }}
+
+  # Налаштування для приватних репозиторіїв
+  {{- if .username }}
+  username: {{ .username }}
+  {{- end }}
+  {{- if .passwordSecret }}
+  passwordSecret:
+    name: {{ .passwordSecret.name }}
+    key: {{ .passwordSecret.key }}
+  {{- end }}
+  {{- if .sshPrivateKeySecret }}
+  sshPrivateKeySecret:
+    name: {{ .sshPrivateKeySecret.name }}
+    key: {{ .sshPrivateKeySecret.key }}
+  {{- end }}
+  {{- if .enableLFS }}
+  enableLFS: {{ .enableLFS }}
+  {{- end }}
+  {{- if .tlsClientCertSecret }}
+  tlsClientCertSecret:
+    name: {{ .tlsClientCertSecret.name }}
+    key: {{ .tlsClientCertSecret.key }}
+    cert: {{ .tlsClientCertSecret.cert }}
+  {{- end }}
+  {{- if .githubAppId }}
+  githubAppId: {{ .githubAppId }}
+  {{- end }}
+  {{- if .githubAppInstallationId }}
+  githubAppInstallationId: {{ .githubAppInstallationId }}
+  {{- end }}
+  {{- if .githubAppPrivateKeySecret }}
+  githubAppPrivateKeySecret:
+    name: {{ .githubAppPrivateKeySecret.name }}
+    key: {{ .githubAppPrivateKeySecret.key }}
+  {{- end }}
+---
+{{- end }}

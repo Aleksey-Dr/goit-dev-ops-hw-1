@@ -1,0 +1,84 @@
+# Progect/charts/django-app/values.yaml
+# Файл значений по умолчанию для Helm чарта Django-приложения.
+# Этот файл содержит настраиваемые параметры для вашего приложения.
+
+replicaCount: 1 # Количество подов для Deployment
+
+image:
+  repository: your-docker-registry/your-django-app # Замените на путь к вашему образу Docker
+  pullPolicy: IfNotPresent # Политика получения образа: Always, Never, IfNotPresent
+  # tag: "1.0.0" # Переопределяет appVersion из Chart.yaml, если указан
+
+imagePullSecrets: [] # Список секретов для получения образа из приватного репозитория
+nameOverride: "" # Переопределяет имя чарта
+fullnameOverride: "" # Переопределяет полное имя чарта
+
+serviceAccount:
+  create: true # Создать ли ServiceAccount
+  annotations: {} # Аннотации для ServiceAccount
+  name: "" # Имя ServiceAccount. Если пусто, будет сгенерировано.
+
+podAnnotations: {} # Аннотации для подов
+podSecurityContext: {} # Контекст безопасности для подов
+  # fsGroup: 2000
+
+securityContext: {} # Контекст безопасности для контейнеров
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP # Тип Service: ClusterIP, NodePort, LoadBalancer
+  port: 80 # Порт, который будет открыт Service (для внешнего доступа)
+
+ingress:
+  enabled: false # Включить ли Ingress
+  className: "" # Класс Ingress
+  annotations: {} # Аннотации для Ingress
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local # Замените на ваш домен
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: [] # Конфигурация TLS для Ingress
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {} # Запросы и лимиты ресурсов для контейнера
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false # Включить ли Horizontal Pod Autoscaler (HPA)
+  minReplicas: 1 # Минимальное количество подов
+  maxReplicas: 10 # Максимальное количество подов
+  targetCPUUtilizationPercentage: 80 # Целевое использование CPU в процентах (для HPA)
+  # targetMemoryUtilizationPercentage: 80 # Целевое использование памяти в процентах (для HPA)
+
+nodeSelector: {} # Node Selector для подов
+affinity: {} # Affinity для подов
+tolerations: [] # Tolerations для подов
+
+# Конфигурация переменных окружения для приложения (используется в ConfigMap)
+config:
+  database:
+    name: "mydb" # Имя базы данных
+    user: "dbuser" # Пользователь базы данных
+    host: "your-db-endpoint" # Хост базы данных (например, из вывода модуля RDS)
+    port: 5432 # Порт базы данных
+
+# Дополнительные секреты, которые могут быть смонтированы в под
+# secrets:
+#   - name: my-db-secret
+#     mountPath: /etc/secrets/db
+#     subPath: ""

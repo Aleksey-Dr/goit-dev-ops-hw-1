@@ -1,0 +1,25 @@
+# Progect/charts/django-app/templates/service.yaml
+# Kubernetes Service для Django-додатку.
+# Цей файл визначає, як ваш Django-додаток буде доступний всередині кластера
+# та, за бажанням, ззовні.
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Назва Service, зазвичай береться з .Chart.Name та .Release.Name
+  name: {{ include "django-app.fullname" . }}
+  labels:
+    {{- include "django-app.labels" . | nindent 4 }}
+spec:
+  # Тип сервісу: ClusterIP (за замовчуванням), NodePort, LoadBalancer
+  # ClusterIP: Доступний лише всередині кластера.
+  # NodePort: Доступний на статичному порту на кожній ноді.
+  # LoadBalancer: Створює хмарний балансувальник навантаження для зовнішнього доступу.
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http # Посилається на порт з назвою 'http' у Deployment
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "django-app.selectorLabels" . | nindent 4 }}

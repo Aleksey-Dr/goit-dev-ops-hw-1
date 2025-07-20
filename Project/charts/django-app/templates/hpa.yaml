@@ -1,0 +1,55 @@
+# Progect/charts/django-app/templates/hpa.yaml
+# Kubernetes Horizontal Pod Autoscaler (HPA) для Django-приложения.
+# Этот файл автоматически масштабирует количество подов вашего Django-приложения
+# в зависимости от загрузки CPU или других метрик.
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  # Название HPA, обычно берется из .Chart.Name и .Release.Name
+  name: {{ include "django-app.fullname" . }}-hpa
+  labels:
+    {{- include "django-app.labels" . | nindent 4 }}
+spec:
+  # Ссылка на Deployment, который будет масштабироваться
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "django-app.fullname" . }}
+  # Минимальное количество подов
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  # Максимальное количество подов
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # Целевое использование CPU в процентах
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          # Целевое использование памяти в процентах
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+  # Поведение масштабирования (опционально, для более тонкой настройки)
+  # behavior:
+  #   scaleDown:
+  #     stabilizationWindowSeconds: 300
+  #     policies:
+  #       - type: Percent
+  #         value: 100
+  #         periodSeconds: 15
+  #   scaleUp:
+  #     stabilizationWindowSeconds: 0
+  #     policies:
+  #       - type: Percent
+  #         value: 100
+  #         periodSeconds: 15

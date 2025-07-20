@@ -1,0 +1,22 @@
+# Progect/charts/django-app/Chart.yaml
+# Файл Chart.yaml для Helm чарта Django-приложения.
+# Этот файл содержит метаданные о вашем Helm чарте.
+
+apiVersion: v2
+name: django-app
+description: A Helm chart for a Django application
+# Тип чарта. application - для приложений, library - для библиотек.
+type: application
+
+# Версия чарта. Увеличивайте ее при каждом изменении чарта.
+version: 0.1.0
+
+# Версия приложения. Это версия Docker образа вашего приложения.
+appVersion: "1.0.0" # Измените на актуальную версию вашего Django-приложения
+
+# Зависимости чарта (например, база данных, Redis и т.д.)
+# dependencies:
+#   - name: postgresql
+#     version: 12.x.x
+#     repository: https://charts.bitnami.com/bitnami
+#     condition: postgresql.enabled # Условие, при котором будет установлена зависимость

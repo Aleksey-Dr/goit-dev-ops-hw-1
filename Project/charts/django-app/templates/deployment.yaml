@@ -1,0 +1,72 @@
+# Progect/charts/django-app/templates/deployment.yaml
+# Kubernetes Deployment для Django-додатку.
+# Цей файл визначає, як ваш Django-додаток буде розгорнутий у кластері Kubernetes.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Назва Deployment, зазвичай береться з .Chart.Name та .Release.Name
+  name: {{ include "django-app.fullname" . }}
+  labels:
+    {{- include "django-app.labels" . | nindent 4 }}
+spec:
+  # Кількість реплік (подів) для вашого додатку
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "django-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "django-app.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "django-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          # Образ Docker для вашого Django-додатку
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            # Порт, на якому слухає ваш Django-додаток
+            - name: http
+              containerPort: 8000 # Стандартний порт для Django
+              protocol: TCP
+          # Змінні середовища, які будуть передані контейнеру
+          envFrom:
+            - configMapRef:
+                name: {{ include "django-app.fullname" . }}-configmap
+          # Перевірки готовності та життєздатності
+          livenessProbe:
+            httpGet:
+              path: /healthz # Змініть на реальний шлях для перевірки життєздатності
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /readyz # Змініть на реальний шлях для перевірки готовності
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,53 @@
+# Progect/modules/argo_cd/charts/values.yaml
+# Файл значений по умолчанию для Helm чарта Argo CD Applications.
+# Этот файл содержит настраиваемые параметры для развертывания
+# Argo CD Applications и Repositories.
+
+# Список репозиториев Git, которые Argo CD будет отслеживать
+repositories: []
+  # - name: my-git-repo
+  #   url: https://github.com/your-org/your-repo.git
+  #   type: git
+  #   # Дополнительные поля, такие как username, passwordSecret, sshPrivateKeySecret и т.д.
+  #   # Например, для приватного репозитория:
+  #   # username: your-git-username
+  #   # passwordSecret:
+  #   #   name: git-credentials
+  #   #   key: password
+
+# Список приложений Argo CD для развертывания
+applications: []
+  # - name: my-app-dev
+  #   namespace: default
+  #   project: default
+  #   source:
+  #     repoURL: https://github.com/your-org/your-repo.git # URL репозитория, где находится манифест приложения
+  #     targetRevision: HEAD # Ветка или тег (например, main, v1.0.0)
+  #     path: k8s/dev # Путь к манифестам внутри репозитория
+  #   destination:
+  #     server: https://kubernetes.default.svc # URL кластера Kubernetes
+  #     namespace: dev # Пространство имен, куда будет развернуто приложение
+  #   syncPolicy:
+  #     automated:
+  #       prune: true
+  #       selfHeal: true
+  #     syncOptions:
+  #       - CreateNamespace=true # Автоматическое создание пространства имен, если оно не существует
+  #   # Дополнительные параметры, такие как ignoreDifferences, info, resourceHooks, retry
+  #
+  # - name: my-app-prod
+  #   namespace: default
+  #   project: default
+  #   source:
+  #     repoURL: https://github.com/your-org/your-repo.git
+  #     targetRevision: v1.0.0
+  #     path: k8s/prod
+  #   destination:
+  #     server: https://kubernetes.default.svc
+  #     namespace: prod
+  #   syncPolicy:
+  #     automated:
+  #       prune: true
+  #       selfHeal: true
+  #     syncOptions:
+  #       - CreateNamespace=true

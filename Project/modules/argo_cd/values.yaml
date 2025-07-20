@@ -1,0 +1,96 @@
+# Progect/modules/argo_cd/values.yaml
+# Кастомна конфігурація Argo CD для Helm релізу.
+# Цей файл містить параметри, які будуть передані чарту Argo CD.
+
+server:
+  # Налаштування сервісу Argo CD API/UI
+  service:
+    # Тип сервісу: LoadBalancer, NodePort, ClusterIP
+    # LoadBalancer дозволяє доступ до Argo CD ззовні кластера.
+    type: LoadBalancer
+    # Порт для HTTP
+    port: 80
+    # Порт для HTTPS
+    targetPort: 8080
+
+  # Налаштування Ingress (якщо ви використовуєте Ingress Controller)
+  # ingress:
+  #   enabled: false
+  #   hosts:
+  #     - argo.yourdomain.com
+  #   paths:
+  #     - /
+  #   annotations:
+  #     kubernetes.io/ingress.class: nginx
+  #     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  #     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  #   tls:
+  #     - secretName: argo-cd-tls
+  #       hosts:
+  #         - argo.yourdomain.com
+
+# Налаштування контролера додатків (Application Controller)
+applicationController:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+
+# Налаштування репозиторіумів (Repo Server)
+repoServer:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+
+# Налаштування Redis
+redis:
+  resources:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+# Загальні налаштування Argo CD
+configs:
+  # Налаштування ConfigManagementPlugin (якщо ви використовуєте кастомні плагіни)
+  # cm: |
+  #   apiVersion: v1
+  #   kind: ConfigMap
+  #   metadata:
+  #     name: argocd-cm
+  #     namespace: argocd
+  #   data:
+  #     url: https://github.com/argoproj/argocd-example-apps.git
+
+  # Налаштування репозиторіїв Git (якщо ви не використовуєте App of Apps)
+  # repositories:
+  #   - name: example-repo
+  #     url: https://github.com/argoproj/argocd-example-apps.git
+  #     type: git
+
+  # Налаштування кластерів Kubernetes (якщо ви керуєте кількома кластерами)
+  # clusters:
+  #   - name: my-second-cluster
+  #     server: https://kubernetes.default.svc
+  #     config:
+  #       tlsClientConfig:
+  #         insecure: false
+  #         caData: ""
+  #       exec:
+  #         command: aws
+  #         args: ["eks", "get-token", "--cluster-name", "my-second-cluster", "--region", "us-east-1"]
+  #         apiVersion: client.authentication.k8s.io/v1beta1
+  #         installHint: |
+  #           Install aws-iam-authenticator:
+  #             curl -o aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.5.9/aws-iam-authenticator_0.5.9_linux_amd64
+  #             chmod +x ./aws-iam-authenticator
+  #             sudo mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator

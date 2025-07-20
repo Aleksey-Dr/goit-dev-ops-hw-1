@@ -1,0 +1,23 @@
+# Progect/modules/argo_cd/charts/Chart.yaml
+# Файл Chart.yaml для Helm чарта Argo CD Applications.
+# Этот файл содержит метаданные о вашем Helm чарте, который будет использоваться
+# для развертывания приложений и репозиториев в Argo CD.
+
+apiVersion: v2
+name: argo-cd-applications
+description: A Helm chart for deploying Argo CD Applications and Repositories
+# Тип чарта. application - для приложений, library - для библиотек.
+type: application
+
+# Версия чарта. Увеличивайте ее при каждом изменении чарта.
+version: 0.1.0
+
+# Версия приложения. В данном случае это версия Argo CD, с которой совместим чарт.
+appVersion: "2.x.x" # Совместимость с Argo CD 2.x
+
+# Зависимости чарта (если есть).
+# Например, если этот чарт зависит от другого чарта для создания чего-либо.
+# dependencies:
+#   - name: another-chart
+#     version: 1.0.0
+#     repository: https://example.com/charts
