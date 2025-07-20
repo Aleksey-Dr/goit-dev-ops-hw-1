@@ -1,0 +1,80 @@
+# Progect/modules/argo_cd/charts/templates/application.yaml
+# Kubernetes Manifest для Argo CD Application.
+# Цей шаблон генерує ресурси Argo CD Application на основі значень,
+# переданих Helm чарту.
+
+{{- range .Values.applications }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Назва додатку Argo CD
+  name: {{ .name }}
+  # Простір імен, де буде розгорнуто сам ресурс Application (зазвичай той самий, що й Argo CD)
+  namespace: {{ default "argocd" .namespace }} # За замовчуванням "argocd" або з .Values.applications.namespace
+  labels:
+    app.kubernetes.io/name: {{ .name }}
+    app.kubernetes.io/part-of: argo-cd-apps
+spec:
+  # Проект Argo CD, до якого належить додаток
+  project: {{ .project | default "default" }} # За замовчуванням "default"
+
+  source:
+    # URL репозиторію Git, де знаходиться маніфест додатка
+    repoURL: {{ .source.repoURL }}
+    # Цільова ревізія (гілка, тег, коміт)
+    targetRevision: {{ .source.targetRevision | default "HEAD" }}
+    # Шлях до маніфестів у репозиторії
+    path: {{ .source.path }}
+    # Додаткові параметри для Helm, Kustomize тощо, якщо використовуються
+    {{- if .source.helm }}
+    helm:
+      {{- toYaml .source.helm | nindent 6 }}
+    {{- end }}
+    {{- if .source.kustomize }}
+    kustomize:
+      {{- toYaml .source.kustomize | nindent 6 }}
+    {{- end }}
+
+  destination:
+    # URL кластера Kubernetes, куди буде розгорнуто додаток
+    server: {{ .destination.server | default "https://kubernetes.default.svc" }}
+    # Простір імен, куди буде розгорнуто додаток у цільовому кластері
+    namespace: {{ .destination.namespace }}
+
+  syncPolicy:
+    # Автоматична синхронізація
+    {{- if .syncPolicy.automated }}
+    automated:
+      prune: {{ .syncPolicy.automated.prune | default false }} # Видаляти ресурси, яких немає в Git
+      selfHeal: {{ .syncPolicy.automated.selfHeal | default false }} # Автоматично виправляти відхилення
+    {{- end }}
+    # Опції синхронізації
+    {{- if .syncPolicy.syncOptions }}
+    syncOptions:
+      {{- toYaml .syncPolicy.syncOptions | nindent 6 }}
+    {{- end }}
+    # Автоматичне створення простору імен, якщо він не існує
+    {{- if .syncPolicy.automated.createNamespace }}
+    syncOptions:
+      - CreateNamespace=true
+    {{- end }}
+
+  # Додаткові параметри
+  {{- if .ignoreDifferences }}
+  ignoreDifferences:
+    {{- toYaml .ignoreDifferences | nindent 4 }}
+  {{- end }}
+  {{- if .info }}
+  info:
+    {{- toYaml .info | nindent 4 }}
+  {{- end }}
+  {{- if .resourceHooks }}
+  resourceHooks:
+    {{- toYaml .resourceHooks | nindent 4 }}
+  {{- end }}
+  {{- if .retry }}
+  retry:
+    {{- toYaml .retry | nindent 4 }}
+  {{- end }}
+---
+{{- end }}

@@ -1,0 +1,21 @@
+# Progect/charts/django-app/templates/configmap.yaml
+# Kubernetes ConfigMap для Django-додатку.
+# Цей файл містить змінні середовища, які будуть доступні для вашого додатку.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Назва ConfigMap, зазвичай береться з .Chart.Name та .Release.Name
+  name: {{ include "django-app.fullname" . }}-configmap
+  labels:
+    {{- include "django-app.labels" . | nindent 4 }}
+data:
+  # Приклади змінних середовища для Django-додатку
+  # Замініть їх на ваші реальні змінні
+  DJANGO_SETTINGS_MODULE: "your_project_name.settings" # Назва вашого файлу налаштувань Django
+  DATABASE_NAME: "{{ .Values.config.database.name }}"
+  DATABASE_USER: "{{ .Values.config.database.user }}"
+  DATABASE_HOST: "{{ .Values.config.database.host }}"
+  DATABASE_PORT: "{{ .Values.config.database.port | quote }}" # Порт як рядок
+  # SECRET_KEY: "your_django_secret_key" # Рекомендується використовувати Kubernetes Secret для чутливих даних
+  # DEBUG: "False" # Для продакшну завжди False
