@@ -1,0 +1,66 @@
+# Progect/modules/prometheus/values.yaml
+# Кастомна конфігурація для Prometheus (kube-prometheus-stack) Helm Chart
+# Це базовий набір налаштувань. Розкоментуйте та змініть за потреби
+
+alertmanager:
+  enabled: true
+  persistentVolume:
+    enabled: false # Для продакшну варто увімкнути та налаштувати persistentVolume
+    size: 2Gi
+  # nodeSelector: {}
+  # tolerations: []
+
+kubeControllerManager:
+  enabled: false # Зазвичай не потрібно моніторити ззовні кластера
+
+kubeEtcd:
+  enabled: false # Зазвичай не потрібно моніторити ззовні кластера
+
+kubeScheduler:
+  enabled: false # Зазвичай не потрібно моніторити ззовні кластера
+
+kube-state-metrics:
+  enabled: true
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 10d # Період зберігання метрик
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2 # або інший StorageClass
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi # Розмір сховища для Prometheus
+    # nodeSelector: {}
+    # tolerations: []
+
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: true # Увімкнути стандартні дашборди
+  # adminPassword: "your-strong-grafana-password" # Рекомендується задавати через секрети або Terraform
+  # ingress:
+  #   enabled: false # Увімкнути для доступу через Ingress
+  #   hosts:
+  #     - grafana.yourdomain.com
+  # service:
+  #   type: LoadBalancer # Змініть на LoadBalancer для зовнішнього доступу
+  #   port: 80
+  # nodeSelector: {}
+  # tolerations: []
+
+# exporter-kube-state-metrics:
+#   enabled: true
+
+# nodeExporter:
+#   enabled: true # Експортер метрик вузлів
+
+# Для використання з EKS та AWS Load Balancer Controller (якщо Grafana Service type = LoadBalancer)
+# serviceMonitor:
+#   labels:
+#     release: prometheus-community-kube-prometheus-stack
+#     app.kubernetes.io/name: kube-prometheus-stack-grafana
+#     app.kubernetes.io/instance: kube-prometheus-stack
+#     app.kubernetes.io/component: grafana

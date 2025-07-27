@@ -1,0 +1,121 @@
+// Progect/Django/Jenkinsfile
+// Jenkinsfile для CI/CD пайплайну Django-додатку
+// Цей файл визначає етапи збірки, тестування та розгортання додатку
+
+pipeline {
+    agent {
+        kubernetes {
+            cloud 'kubernetes'
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: django-app
+spec:
+  containers:
+  - name: docker
+    image: docker:dind
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: docker-sock
+        mountPath: /var/run/docker.sock
+  - name: python
+    image: python:3.9-slim-buster
+    command: ['cat']
+    tty: true
+  volumes:
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+"""
+        }
+    }
+
+    environment {
+        # ARN ролі IAM для ECR Push/Pull
+        AWS_ACCOUNT_ID = '152710746299' // AWS Account ID
+        AWS_REGION     = 'eu-central-1'       // Регіон AWS
+        ECR_REPOSITORY = 'django-app'    // Назва ECR репозиторію
+        IMAGE_TAG      = "${env.BUILD_NUMBER}"
+        KUBECONFIG_CONTENT = credentials('kubeconfig-secret-id') // ID секрету Jenkins з kubeconfig
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    # Отримати код з Git репозиторію
+                    git branch: 'main', url: 'https://github.com/Aleksey-Dr/django-app.git' // URL Git репозиторію
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            agent { container 'docker' }
+            steps {
+                script {
+                    # Авторизація в ECR
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                    # Збірка Docker образу
+                    sh "docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} ."
+                    # Тегування образу
+                    sh "docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Push Docker Image to ECR') {
+            agent { container 'docker' }
+            steps {
+                script {
+                    # Відправка образу до ECR
+                    sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes (Argo CD Sync)') {
+            agent { container 'python' } # Можна використовувати будь-який контейнер з kubectl і argocd CLI
+            steps {
+                script {
+                    # Зберегти kubeconfig у тимчасовий файл
+                    writeFile file: 'kubeconfig', text: KUBECONFIG_CONTENT
+                    env.KUBECONFIG = "${pwd()}/kubeconfig"
+
+                    # Оновити Helm values для Django-додатку
+                    # Цей крок залежить від того, як ви керуєте Helm values для Argo CD.
+                    # Якщо Argo CD відстежує Git репозиторій з Helm чартом,
+                    # то потрібно оновити values.yaml у Git, а не безпосередньо тут.
+                    # Приклад оновлення values.yaml у Git (потрібно налаштувати Git credentials в Jenkins)
+                    # sh "git config user.email 'jenkins@example.com'"
+                    # sh "git config user.name 'Jenkins'"
+                    # sh "git clone https://github.com/Aleksey-Dr/helm-charts-repo.git" # Репозиторій з Helm чартами
+                    # sh "cd helm-charts-repo/charts/django-app"
+                    # sh "yq e '.image.tag = \"${IMAGE_TAG}\"' -i values.yaml" # Оновити тег образу
+                    # sh "git add values.yaml"
+                    # sh "git commit -m 'Update django-app image tag to ${IMAGE_TAG} [skip ci]'"
+                    # sh "git push"
+
+                    # Запустити синхронізацію Argo CD (якщо Argo CD не налаштований на автоматичну синхронізацію)
+                    # Якщо Argo CD налаштований на автоматичну синхронізацію з Git, цей крок не потрібен.
+                    # sh "argocd login your-argocd-server --username admin --password your-argocd-password" # Потрібні облікові дані Argo CD
+                    # sh "argocd app sync django-app-dev" # Назв Argo CD додатку
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        failure {
+            echo "Пайплайн завершився з помилкою."
+        }
+        success {
+            echo "Пайплайн успішно завершився."
+        }
+    }
+}

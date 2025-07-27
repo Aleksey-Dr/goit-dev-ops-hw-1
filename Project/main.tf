@@ -62,3 +62,85 @@ module "rds" {
     Project     = "FlexibleRDS"
   }
 }
+
+# Підключення модуля ECR
+module "ecr" {
+  source = "./modules/ecr"
+  repository_name = "django-app" # Назва репозиторію
+  tags = {
+    Environment = "Dev"
+    Project     = "FlexibleRDS"
+  }
+}
+
+# Підключення модуля EKS
+module "eks" {
+  source = "./modules/eks"
+
+  cluster_name = "my-devops-eks-cluster"
+  kubernetes_version = "1.28" # Перевірте актуальні версії AWS
+  cluster_iam_role_arn = "arn:aws:iam::152710746299:role/EKSClusterRole"
+  vpc_id = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  vpc_cidr_block = module.vpc.vpc_cidr_block
+  enable_public_endpoint_access = false
+
+  node_instance_types = ["t3.medium"]
+  node_iam_role_arn = "arn:aws:iam::152710746299:role/EKSNodeInstanceRole"
+  node_group_min_size = 1
+  node_group_max_size = 3
+  node_group_desired_size = 1
+
+  tags = {
+    Environment = "Dev"
+    Project     = "FlexibleRDS"
+  }
+}
+
+# Виклик модуля JENKINS
+module "jenkins" {
+  source = "./modules/jenkins"
+  # release_name = "jenkins" # Використовувати значення за замовчуванням або змінити
+  # namespace = "jenkins"   # Використовувати значення за замовчуванням або змінити
+  # chart_version = "4.10.0" # Перевірте актуальну версію
+  # chart_repository = "https://charts.jenkins.io"
+  # set_values = [] # Додаткові значення Helm
+  tags = {
+    Environment = "Dev"
+    Project     = "FlexibleRDS"
+  }
+  # Залежність від EKS кластера, щоб Jenkins розгортався після його готовності
+  depends_on = [module.eks]
+}
+
+# Виклик модуля ARGO_CD
+module "argo_cd" {
+  source = "./modules/argo_cd"
+  # release_name = "argo-cd" # Використовувати значення за замовчуванням або змінити
+  # namespace = "argocd"    # Використовувати значення за замовчуванням або змінити
+  # chart_version = "5.36.0" # Перевірте актуальну версію
+  # chart_repository = "https://argoproj.github.io/argo-helm"
+  # set_values = [] # Додаткові значення Helm
+  tags = {
+    Environment = "Dev"
+    Project     = "FlexibleRDS"
+  }
+  # Залежність від EKS кластера
+  depends_on = [module.eks]
+}
+
+# Виклик модуля Prometheus
+module "prometheus" {
+  source = "./modules/prometheus" # Вам потрібно створити цей модуль
+  namespace = "monitoring"
+  # ... інші змінні
+  depends_on = [module.eks]
+}
+
+# Виклик модуля grafana
+module "grafana" {
+  source = "./modules/grafana" # Вам потрібно створити цей модуль
+  namespace = "monitoring"
+  # ... інші змінні
+  depends_on = [module.prometheus] # Графана залежить від Прометея
+}

@@ -1,0 +1,34 @@
+# Progect/Django/docker-compose.yaml
+# Docker Compose файл для локальної розробки Django-додатку
+# Цей файл визначає сервіси, мережі та томи для локального розгортання
+
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: . # Контекст збірки - поточна директорія
+      dockerfile: Dockerfile # Використовувати Dockerfile з поточної директорії
+    command: gunicorn django_app.wsgi:application --bind 0.0.0.0:8000 # WSGI-файл (Web Server Gateway Interface)
+    volumes:
+      - .:/app # Монтуємо поточну директорію в контейнер для гарячої перезавантаження
+    ports:
+      - "8000:8000" # Прокидуємо порт 8000 з контейнера на хост
+    env_file:
+      - .env # Завантажуємо змінні середовища з файлу .env
+    depends_on:
+      - db # Залежить від сервісу бази даних
+
+  db:
+    image: postgres:14-alpine # Використовуємо образ PostgreSQL
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Постійне сховище для даних бази даних
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "5432:5432" # Прокидуємо порт 5432 з контейнера на хост
+
+volumes:
+  pgdata: # Визначаємо том для даних PostgreSQL
