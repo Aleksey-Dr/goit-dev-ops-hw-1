@@ -1,0 +1,43 @@
+# Progect/modules/grafana/values.yaml
+# Кастомна конфігурація для Grafana Helm Chart
+# Це базовий набір налаштувань. Розкоментуйте та змініть за потреби
+
+grafana:
+  adminPassword: "grafana-password" # Рекомендується використовувати secrets.
+  service:
+    type: ClusterIP # Змініть на LoadBalancer для зовнішнього доступу, якщо Prometheus-stack не розгортає Grafana
+    port: 80
+  ingress:
+    enabled: false # Увімкнути для доступу через Ingress
+    # hosts:
+    #   - grafana.yourdomain.com
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  persistence:
+    enabled: true
+    storageClassName: gp2 # або інший StorageClass
+    size: 5Gi
+  # nodeSelector: {}
+  # tolerations: []
+
+# Налаштування джерела даних Prometheus
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090 # URL до Prometheus
+        access: proxy
+        isDefault: true
+        version: 1
+        editable: true
+
+# Додайте дашборди (приклад)
+# dashboards:
+#   default:
+#     kubernetes-cluster-overview:
+#       gnetId: 10000 # Приклад ID дашборду з Grefana.com
+#       revision: 1
+#       datasource: Prometheus
